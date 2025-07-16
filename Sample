@@ -1,0 +1,14 @@
+seating-arrangement-app/
+│
+├── app.py                      # Main Flask backend
+├── requirements.txt            # Python dependencies for deployment
+├── seating_data.xlsx           # Excel file with seating details
+│
+├── templates/                  # HTML templates
+│   ├── login.html              # Login page
+│   └── dashboard.html          # Admin dashboard
+│
+├── static/                     # Static files (CSS, images, JS)
+│   └── style.css               # Styling for login and dashboard
+│
+└── README.md                   # (Optional) Project description for GitHuB
