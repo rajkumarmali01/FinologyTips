@@ -19,3 +19,11 @@ Sr. No.	Employee ID	Employee Name	Tower	Department	Building Name	Floor	Wing	WS N
 
 
 https://seating-arrangment-eoes.onrender.com
+
+
+Actual Utilization (%) = 
+DIVIDE(
+    COUNTROWS(FILTER('Maindata', 'Maindata'[Status] = "Occupied")),
+    COUNTROWS(FILTER('Maindata', 'Maindata'[Status] IN { "Occupied", "Vacant" }))
+) * 100
+
