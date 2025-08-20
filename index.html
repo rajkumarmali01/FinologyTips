@@ -1,23 +1,94 @@
-UnicodeDecodeError: This app has encountered an error. The original error message is redacted to prevent data leaks. Full error details have been recorded in the logs (if you're on Streamlit Cloud, click on 'Manage app' in the lower right of your app).
-Traceback:
-File "/mount/src/security-atwork-analysis/app .py", line 14, in <module>
-    seating_df = pd.read_csv(seating_file)
-File "/home/adminuser/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
-    return _read(filepath_or_buffer, kwds)
-File "/home/adminuser/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 620, in _read
-    parser = TextFileReader(filepath_or_buffer, **kwds)
-File "/home/adminuser/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 1620, in __init__
-    self._engine = self._make_engine(f, self.engine)
-                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
-File "/home/adminuser/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 1898, in _make_engine
-    return mapping[engine](f, **self.options)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
-File "/home/adminuser/venv/lib/python3.13/site-packages/pandas/io/parsers/c_parser_wrapper.py", line 93, in __init__
-    self._reader = parsers.TextReader(src, **kwds)
-                   ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
-File "pandas/_libs/parsers.pyx", line 574, in pandas._libs.parsers.TextReader.__cinit__
-File "pandas/_libs/parsers.pyx", line 663, in pandas._libs.parsers.TextReader._get_header
-File "pandas/_libs/parsers.pyx", line 874, in pandas._libs.parsers.TextReader._tokenize_rows
-File "pandas/_libs/parsers.pyx", line 891, in pandas._libs.parsers.TextReader._check_tokenize_status
-File "pandas/_libs/parsers.pyx", line 2053, in pandas._libs.parsers.raise_parser_error
-File "<frozen codecs>", line 325, in decode
+// Shows unique Building names from both tables (searchable)
+With(
+    { q: Trim(cmbBuilding.SearchText) },
+    Sort(
+        Distinct(
+            Ungroup(
+                Table(
+                    { L: If(
+                            IsBlank(q),
+                            ShowColumns(TableA, "BuildingNameA"),
+                            ShowColumns(Filter(TableA, StartsWith(BuildingNameA, q)), "BuildingNameA")
+                        )
+                    },
+                    { L: If(
+                            IsBlank(q),
+                            ShowColumns(TableB, "BuildingNameB"),
+                            ShowColumns(Filter(TableB, StartsWith(BuildingNameB, q)), "BuildingNameB")
+                        )
+                    }
+                ),
+                "L"
+            ),
+            Result
+        ),
+        Result,
+        Ascending
+    )
+)
+
+
+
+
+
+
+
+
+
+// 1) Save selected building
+Set(varBuilding, cmbBuilding.Selected.Result);
+
+// 2) Collect filtered rows from each table (pick only columns you need)
+ClearCollect(
+    colA,
+    AddColumns(
+        ShowColumns(
+            Filter(TableA, BuildingNameA = varBuilding),
+            "RecordIdA", "BuildingNameA", "Col1", "Col2"      // <-- replace with columns you need
+        ),
+        "Source", "A",
+        "Building", BuildingNameA
+    )
+);
+
+ClearCollect(
+    colB,
+    AddColumns(
+        ShowColumns(
+            Filter(TableB, BuildingNameB = varBuilding),
+            "RecordIdB", "BuildingNameB", "ColX", "ColY"      // <-- replace with columns you need
+        ),
+        "Source", "B",
+        "Building", BuildingNameB
+    )
+);
+
+// 3) Merge into a single, uniform collection for the gallery
+Clear(colMerged);
+Collect(colMerged, RenameColumns(colA, "RecordIdA", "RecordId"));
+Collect(colMerged, RenameColumns(colB, "RecordIdB", "RecordId"));
+
+// 4) Go to the next screen
+Navigate(scrResults, ScreenTransition.Fade)
+
+
+
+
+
+not searchable 
+
+
+Sort(
+    Distinct(
+        Ungroup(
+            Table(
+                { L: ShowColumns(TableA, "BuildingNameA") },
+                { L: ShowColumns(TableB, "BuildingNameB") }
+            ),
+            "L"
+        ),
+        Result
+    ),
+    Result,
+    Ascending
+)
